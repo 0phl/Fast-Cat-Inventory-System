@@ -1,6 +1,5 @@
 "use client"
 
-import { useState } from "react"
 import { ManagerLayout } from "@/components/layouts/manager-layout"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -12,156 +11,28 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Textarea } from "@/components/ui/textarea"
 import { Search, CheckCircle, XCircle, Clock, Eye, AlertTriangle } from "lucide-react"
 import { format } from "date-fns"
-
-interface StaffRequest {
-  id: string
-  staffName: string
-  staffId: string
-  partName: string
-  partNumber: string
-  quantity: number
-  ship: string
-  priority: "Low" | "Medium" | "High" | "Critical"
-  reason: string
-  requestDate: Date
-  status: "Pending" | "Approved" | "Rejected"
-  notes?: string
-}
+import { useManagerRequests } from "@/hooks/use-manager-requests"
+import { getPriorityColor, getStatusColor } from "@/lib/utils"
 
 export default function ManagerRequestsPage() {
-  const [searchTerm, setSearchTerm] = useState("")
-  const [filterStatus, setFilterStatus] = useState("all")
-  const [filterPriority, setFilterPriority] = useState("all")
-  const [selectedRequest, setSelectedRequest] = useState<StaffRequest | null>(null)
-  const [actionDialog, setActionDialog] = useState<{ type: "approve" | "reject"; request: StaffRequest } | null>(null)
-  const [actionNotes, setActionNotes] = useState("")
-
-  // Mock staff requests data
-  const staffRequests: StaffRequest[] = [
-    {
-      id: "REQ-001",
-      staffName: "Mike Johnson",
-      staffId: "STF-001",
-      partName: "Engine Oil Filter",
-      partNumber: "ENG-001",
-      quantity: 5,
-      ship: "FastCat M1",
-      priority: "High",
-      reason: "Emergency maintenance - oil leak detected",
-      requestDate: new Date("2024-01-15T10:30:00"),
-      status: "Pending",
-    },
-    {
-      id: "REQ-002",
-      staffName: "Sarah Wilson",
-      staffId: "STF-002",
-      partName: "Brake Pads Set",
-      partNumber: "BRK-005",
-      quantity: 2,
-      ship: "FastCat M2",
-      priority: "Medium",
-      reason: "Scheduled maintenance replacement",
-      requestDate: new Date("2024-01-15T14:45:00"),
-      status: "Pending",
-    },
-    {
-      id: "REQ-003",
-      staffName: "Tom Brown",
-      staffId: "STF-003",
-      partName: "Hydraulic Fluid",
-      partNumber: "HYD-003",
-      quantity: 10,
-      ship: "FastCat M3",
-      priority: "Critical",
-      reason: "Hydraulic system failure - immediate replacement needed",
-      requestDate: new Date("2024-01-16T09:15:00"),
-      status: "Pending",
-    },
-    {
-      id: "REQ-004",
-      staffName: "Lisa Davis",
-      staffId: "STF-004",
-      partName: "Air Filter",
-      partNumber: "AIR-002",
-      quantity: 3,
-      ship: "FastCat M1",
-      priority: "Low",
-      reason: "Routine filter replacement",
-      requestDate: new Date("2024-01-16T16:20:00"),
-      status: "Approved",
-      notes: "Approved for routine maintenance schedule",
-    },
-    {
-      id: "REQ-005",
-      staffName: "James Miller",
-      staffId: "STF-005",
-      partName: "Fuel Injector",
-      partNumber: "FUE-007",
-      quantity: 1,
-      ship: "FastCat M2",
-      priority: "Medium",
-      reason: "Performance issues detected during inspection",
-      requestDate: new Date("2024-01-17T11:00:00"),
-      status: "Rejected",
-      notes: "Insufficient justification - please provide detailed diagnostic report",
-    },
-  ]
-
-  const filteredRequests = staffRequests.filter((request) => {
-    const matchesSearch =
-      request.staffName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      request.partName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      request.partNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      request.ship.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      request.id.toLowerCase().includes(searchTerm.toLowerCase())
-
-    const matchesStatus = filterStatus === "all" || request.status === filterStatus
-    const matchesPriority = filterPriority === "all" || request.priority === filterPriority
-
-    return matchesSearch && matchesStatus && matchesPriority
-  })
-
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case "Critical":
-        return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300"
-      case "High":
-        return "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300"
-      case "Medium":
-        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300"
-      case "Low":
-        return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300"
-      default:
-        return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300"
-    }
-  }
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "Approved":
-        return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300"
-      case "Pending":
-        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300"
-      case "Rejected":
-        return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300"
-      default:
-        return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300"
-    }
-  }
-
-  const handleApproveReject = (action: "approve" | "reject", request: StaffRequest) => {
-    setActionDialog({ type: action, request })
-    setActionNotes("")
-  }
-
-  const confirmAction = () => {
-    if (actionDialog) {
-      // Here you would typically make an API call to update the request status
-      console.log(`${actionDialog.type} request ${actionDialog.request.id} with notes: ${actionNotes}`)
-      setActionDialog(null)
-      setActionNotes("")
-    }
-  }
+  const {
+    searchTerm,
+    setSearchTerm,
+    filterStatus,
+    setFilterStatus,
+    filterPriority,
+    setFilterPriority,
+    selectedRequest,
+    setSelectedRequest,
+    actionDialog,
+    setActionDialog,
+    actionNotes,
+    setActionNotes,
+    requests,
+    filteredRequests,
+    handleApproveReject,
+    confirmAction,
+  } = useManagerRequests()
 
   return (
     <ManagerLayout>
@@ -181,7 +52,7 @@ export default function ManagerRequestsPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Requests</p>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{staffRequests.length}</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{requests.length}</p>
                 </div>
                 <Clock className="h-8 w-8 text-blue-600" />
               </div>
@@ -193,7 +64,7 @@ export default function ManagerRequestsPage() {
                 <div>
                   <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Pending</p>
                   <p className="text-2xl font-bold text-yellow-600">
-                    {staffRequests.filter((r) => r.status === "Pending").length}
+                    {requests.filter((r) => r.status === "Pending").length}
                   </p>
                 </div>
                 <AlertTriangle className="h-8 w-8 text-yellow-600" />
@@ -206,7 +77,7 @@ export default function ManagerRequestsPage() {
                 <div>
                   <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Approved</p>
                   <p className="text-2xl font-bold text-green-600">
-                    {staffRequests.filter((r) => r.status === "Approved").length}
+                    {requests.filter((r) => r.status === "Approved").length}
                   </p>
                 </div>
                 <CheckCircle className="h-8 w-8 text-green-600" />
@@ -219,7 +90,7 @@ export default function ManagerRequestsPage() {
                 <div>
                   <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Rejected</p>
                   <p className="text-2xl font-bold text-red-600">
-                    {staffRequests.filter((r) => r.status === "Rejected").length}
+                    {requests.filter((r) => r.status === "Rejected").length}
                   </p>
                 </div>
                 <XCircle className="h-8 w-8 text-red-600" />
@@ -307,7 +178,7 @@ export default function ManagerRequestsPage() {
                       <TableCell>
                         <Badge className={getPriorityColor(request.priority)}>{request.priority}</Badge>
                       </TableCell>
-                      <TableCell>{format(request.requestDate, "MMM dd, yyyy")}</TableCell>
+                      <TableCell>{format(request.requestDate!, "MMM dd, yyyy")}</TableCell>
                       <TableCell>
                         <Badge className={getStatusColor(request.status)}>{request.status}</Badge>
                       </TableCell>
@@ -409,7 +280,7 @@ export default function ManagerRequestsPage() {
                 )}
                 <div>
                   <label className="text-sm font-medium text-gray-600">Request Date</label>
-                  <p className="text-gray-900">{format(selectedRequest.requestDate, "PPP 'at' p")}</p>
+                  <p className="text-gray-900">{format(selectedRequest.requestDate!, "PPP 'at' p")}</p>
                 </div>
               </div>
             )}

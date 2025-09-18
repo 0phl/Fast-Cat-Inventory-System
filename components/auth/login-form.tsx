@@ -3,7 +3,6 @@
 import type React from "react"
 
 import { useState } from "react"
-import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -11,12 +10,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Eye, EyeOff } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useAuth } from "@/contexts/auth-context"
 
 export function LoginForm() {
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [selectedRole, setSelectedRole] = useState<string>("Staff")
-  const router = useRouter()
+  const { login } = useAuth()
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -24,17 +24,8 @@ export function LoginForm() {
 
     // Simulate API call
     setTimeout(() => {
-      localStorage.setItem("auth-token", "demo-token")
-      localStorage.setItem("user-role", selectedRole)
-
-      // Redirect based on role
-      if (selectedRole === "Staff") {
-        router.push("/staff/dashboard")
-      } else if (selectedRole === "Manager") {
-        router.push("/manager/dashboard")
-      } else {
-        router.push("/dashboard")
-      }
+      // In a real app, you'd get a token from your API
+      login("demo-token", selectedRole)
       setIsLoading(false)
     }, 1000)
   }
@@ -45,9 +36,8 @@ export function LoginForm() {
 
     // Simulate API call
     setTimeout(() => {
-      localStorage.setItem("auth-token", "demo-token")
-      localStorage.setItem("user-role", "Staff")
-      router.push("/staff/dashboard")
+      // In a real app, you'd get a token from your API and the user's default role
+      login("demo-token", "Staff")
       setIsLoading(false)
     }, 1000)
   }

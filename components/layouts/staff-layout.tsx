@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Menu, BarChart3, QrCode, Plus, History, LogOut, Sun, Moon } from "lucide-react"
 import { useTheme } from "next-themes"
+import { useAuth } from "@/contexts/auth-context"
 
 interface StaffLayoutProps {
   children: React.ReactNode
@@ -17,6 +18,7 @@ export function StaffLayout({ children }: StaffLayoutProps) {
   const router = useRouter()
   const pathname = usePathname()
   const { theme, setTheme } = useTheme()
+  const { logout } = useAuth()
 
   const navigation = [
     { name: "Dashboard", href: "/staff/dashboard", icon: BarChart3 },
@@ -24,12 +26,6 @@ export function StaffLayout({ children }: StaffLayoutProps) {
     { name: "Request Parts", href: "/staff/request", icon: Plus },
     { name: "My Transactions", href: "/staff/transactions", icon: History },
   ]
-
-  const handleLogout = () => {
-    localStorage.removeItem("auth-token")
-    localStorage.removeItem("user-role")
-    router.push("/")
-  }
 
   const Sidebar = ({ mobile = false }) => (
     <div className="flex flex-col h-full">
@@ -75,7 +71,7 @@ export function StaffLayout({ children }: StaffLayoutProps) {
         <Button
           variant="ghost"
           className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
-          onClick={handleLogout}
+          onClick={logout}
         >
           <LogOut className="mr-2 h-4 w-4" />
           Logout

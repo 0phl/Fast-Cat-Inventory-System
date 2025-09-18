@@ -1,24 +1,25 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { LoginForm } from "@/components/auth/login-form"
+import { useAuth } from "@/contexts/auth-context"
 
 export default function HomePage() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const { isAuthenticated, user } = useAuth()
   const router = useRouter()
 
   useEffect(() => {
-    // Check if user is authenticated (placeholder logic)
-    const token = localStorage.getItem("auth-token")
-    if (token) {
-      setIsAuthenticated(true)
-      router.push("/dashboard")
+    if (isAuthenticated) {
+      const role = user?.role
+      if (role === 'Manager') router.push('/manager/dashboard');
+      else if (role === 'Staff') router.push('/staff/dashboard');
+      else router.push('/dashboard');
     }
-  }, [router])
+  }, [isAuthenticated, user, router])
 
   if (isAuthenticated) {
-    return null // Will redirect to dashboard
+    return null // Or a loading spinner, while redirecting
   }
 
   return (

@@ -281,11 +281,8 @@ export default function StockPage() {
               </div>
 
               <Button
-                className={`w-full h-14 text-base font-medium ${
-                  type === "in"
-                    ? "bg-green-600 hover:bg-green-700 text-white"
-                    : "bg-red-600 hover:bg-red-700 text-white"
-                }`}
+                variant={type === "in" ? "success" : "destructive"}
+                className="w-full h-14 text-base font-medium"
                 onClick={type === "in" ? handleStockIn : handleStockOut}
                 disabled={
                   !selectedPart ||

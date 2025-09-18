@@ -1,6 +1,5 @@
 "use client"
 
-import { useState } from "react"
 import { DashboardLayout } from "@/components/layouts/dashboard-layout"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -30,169 +29,33 @@ import {
 import { Label } from "@/components/ui/label"
 import { Search, Plus, Edit, Trash2, UserCheck, UserX, Mail, Phone } from "lucide-react"
 import { format } from "date-fns"
-import { useToast } from "@/hooks/use-toast"
-
-// Mock user data
-const initialUsers = [
-  {
-    id: "USR-001",
-    name: "John Doe",
-    email: "john.doe@fastcat.com",
-    phone: "+63 912 345 6789",
-    role: "Admin",
-    department: "Operations",
-    ship: "FastCat M1",
-    status: "Active",
-    lastLogin: new Date("2024-01-17T08:30:00"),
-    createdAt: new Date("2023-06-15T10:00:00"),
-  },
-  {
-    id: "USR-002",
-    name: "Jane Smith",
-    email: "jane.smith@fastcat.com",
-    phone: "+63 912 345 6790",
-    role: "Manager",
-    department: "Maintenance",
-    ship: "FastCat M2",
-    status: "Active",
-    lastLogin: new Date("2024-01-17T09:15:00"),
-    createdAt: new Date("2023-07-20T14:30:00"),
-  },
-  {
-    id: "USR-003",
-    name: "Mike Johnson",
-    email: "mike.johnson@fastcat.com",
-    phone: "+63 912 345 6791",
-    role: "Staff",
-    department: "Inventory",
-    ship: "FastCat M3",
-    status: "Active",
-    lastLogin: new Date("2024-01-16T16:45:00"),
-    createdAt: new Date("2023-08-10T11:20:00"),
-  },
-  {
-    id: "USR-004",
-    name: "Sarah Wilson",
-    email: "sarah.wilson@fastcat.com",
-    phone: "+63 912 345 6792",
-    role: "Staff",
-    department: "Operations",
-    ship: "FastCat M1",
-    status: "Inactive",
-    lastLogin: new Date("2024-01-10T12:00:00"),
-    createdAt: new Date("2023-09-05T09:45:00"),
-  },
-  {
-    id: "USR-005",
-    name: "Tom Brown",
-    email: "tom.brown@fastcat.com",
-    phone: "+63 912 345 6793",
-    role: "Manager",
-    department: "Engineering",
-    ship: "FastCat M2",
-    status: "Active",
-    lastLogin: new Date("2024-01-17T07:20:00"),
-    createdAt: new Date("2023-10-12T13:15:00"),
-  },
-]
+import { useUserManagement } from "@/hooks/use-user-management"
+import { getRoleColor, getStatusColor } from "@/lib/utils"
 
 export default function UsersPage() {
-  const [users, setUsers] = useState(initialUsers)
-  const [searchTerm, setSearchTerm] = useState("")
-  const [filterRole, setFilterRole] = useState("all")
-  const [filterStatus, setFilterStatus] = useState("all")
-  const [isAddUserOpen, setIsAddUserOpen] = useState(false)
-  const [selectedUser, setSelectedUser] = useState<string | null>(null)
-  const [isEditUserOpen, setIsEditUserOpen] = useState(false)
-  const [editingUser, setEditingUser] = useState<any>(null)
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
-  const [userToDelete, setUserToDelete] = useState<string | null>(null)
-  const { toast } = useToast()
-
-  const filteredUsers = users.filter((user) => {
-    const matchesSearch =
-      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.department.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.ship.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.id.toLowerCase().includes(searchTerm.toLowerCase())
-
-    const matchesRole = filterRole === "all" || user.role === filterRole
-    const matchesStatus = filterStatus === "all" || user.status === filterStatus
-
-    return matchesSearch && matchesRole && matchesStatus
-  })
-
-  const handleEditUser = (user: any) => {
-    setEditingUser({ ...user })
-    setIsEditUserOpen(true)
-  }
-
-  const handleSaveEditUser = () => {
-    if (editingUser) {
-      setUsers(users.map((user) => (user.id === editingUser.id ? editingUser : user)))
-      setIsEditUserOpen(false)
-      setEditingUser(null)
-      toast({
-        title: "User Updated",
-        description: "User information has been successfully updated.",
-      })
-    }
-  }
-
-  const handleToggleUserStatus = (userId: string) => {
-    setUsers(
-      users.map((user) => {
-        if (user.id === userId) {
-          const newStatus = user.status === "Active" ? "Inactive" : "Active"
-          toast({
-            title: `User ${newStatus}`,
-            description: `${user.name} has been ${newStatus.toLowerCase()}.`,
-          })
-          return { ...user, status: newStatus }
-        }
-        return user
-      }),
-    )
-  }
-
-  const handleDeleteUser = (userId: string) => {
-    setUserToDelete(userId)
-    setIsDeleteDialogOpen(true)
-  }
-
-  const confirmDeleteUser = () => {
-    if (userToDelete) {
-      const userToDeleteObj = users.find((u) => u.id === userToDelete)
-      setUsers(users.filter((user) => user.id !== userToDelete))
-      setIsDeleteDialogOpen(false)
-      setUserToDelete(null)
-      toast({
-        title: "User Deleted",
-        description: `${userToDeleteObj?.name} has been removed from the system.`,
-        variant: "destructive",
-      })
-    }
-  }
-
-  const getRoleColor = (role: string) => {
-    switch (role) {
-      case "Admin":
-        return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300"
-      case "Manager":
-        return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300"
-      case "Staff":
-        return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300"
-      default:
-        return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300"
-    }
-  }
-
-  const getStatusColor = (status: string) => {
-    return status === "Active"
-      ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300"
-      : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300"
-  }
+  const {
+    users,
+    searchTerm,
+    setSearchTerm,
+    filterRole,
+    setFilterRole,
+    filterStatus,
+    setFilterStatus,
+    isAddUserOpen,
+    setIsAddUserOpen,
+    isEditUserOpen,
+    setIsEditUserOpen,
+    editingUser,
+    setEditingUser,
+    isDeleteDialogOpen,
+    setIsDeleteDialogOpen,
+    filteredUsers,
+    handleEditUser,
+    handleSaveEditUser,
+    handleToggleUserStatus,
+    handleDeleteUser,
+    confirmDeleteUser,
+  } = useUserManagement()
 
   return (
     <DashboardLayout>

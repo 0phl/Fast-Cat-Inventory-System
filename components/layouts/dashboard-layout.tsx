@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Menu, Package, BarChart3, ArrowUpDown, History, Users, LogOut, Sun, Moon } from "lucide-react"
 import { useTheme } from "next-themes"
+import { useAuth } from "@/contexts/auth-context"
 
 interface DashboardLayoutProps {
   children: React.ReactNode
@@ -18,6 +19,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const router = useRouter()
   const pathname = usePathname()
   const { theme, setTheme } = useTheme()
+  const { logout } = useAuth()
 
   const navigation = [
     { name: "Dashboard", href: "/dashboard", icon: BarChart3 },
@@ -26,12 +28,6 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     { name: "Transactions", href: "/transactions", icon: History },
     { name: "Users", href: "/users", icon: Users },
   ]
-
-  const handleLogout = () => {
-    localStorage.removeItem("auth-token")
-    localStorage.removeItem("user-role")
-    router.push("/")
-  }
 
   const Sidebar = ({ mobile = false }) => (
     <div className="flex flex-col h-full">
@@ -77,7 +73,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         <Button
           variant="ghost"
           className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
-          onClick={handleLogout}
+          onClick={logout}
         >
           <LogOut className="mr-2 h-4 w-4" />
           Logout
